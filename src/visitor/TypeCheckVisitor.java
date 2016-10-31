@@ -63,9 +63,6 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// Identifier i1,i2;
 	// Statement s;
 	public Type visit(MainClass n) {
-		n.i1.accept(this);
-		n.i2.accept(this);
-		n.s.accept(this);
 		return null;
 	}
 
@@ -357,7 +354,10 @@ public class TypeCheckVisitor implements TypeVisitor {
 			v = currMethod.getVar(n.s);
 			if (v == null) v = currMethod.getParam(n.s);
 			else t = symbolTable.getVarType(currMethod, currClass, n.s);
-		} else t = symbolTable.getMethodType(n.s, currClass.getId());
+		} else if (!n.s.equals(currClass.getId())) {
+			System.out.println(n.s);
+			t = symbolTable.getMethodType(n.s, currClass.getId());
+		}
 		return t;
 	}
 }
