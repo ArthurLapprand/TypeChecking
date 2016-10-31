@@ -125,7 +125,6 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// Exp e;
 	public Type visit(MethodDecl n) {
 		currMethod = symbolTable.getMethod(n.i.s, currClass.getId());
-		//currMethod = currClass.getMethod(n.i.s);
 		n.t.accept(this);
 		n.i.accept(this);
 		for (int i = 0; i < n.fl.size(); i++) {
@@ -213,7 +212,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 	public Type visit(Assign n) {
 		Type t1 = n.i.accept(this);
 		Type t2 = n.e.accept(this);
-		if (t1 != t2) {
+		if (!symbolTable.compareTypes(t1, t2)) {
 			System.out.println("Assign com tipos diferentes");
 			System.exit(0);
 		}
@@ -237,7 +236,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
 			System.out.println("Expressão AND com tipos incompatíveis");
 			System.exit(0);
-		};
+		}
 		return new BooleanType();
 	}
 
@@ -246,7 +245,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
 			System.out.println("Expressão LessThan com tipos incompatíveis");
 			System.exit(0);
-		};
+		}
 		return new BooleanType();
 	}
 
@@ -255,7 +254,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
 			System.out.println("Expressão PLUS com tipos incompatíveis");
 			System.exit(0);
-		};
+		}
 		return new IntegerType();
 	}
 
@@ -264,7 +263,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
 			System.out.println("Expressão MINUS com tipos incompatíveis");
 			System.exit(0);
-		};
+		}
 		return new IntegerType();
 	}
 
@@ -273,7 +272,7 @@ public class TypeCheckVisitor implements TypeVisitor {
 		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
 			System.out.println("Expressão TIMES com tipos incompatíveis");
 			System.exit(0);
-		};
+		}
 		return new IntegerType();
 	}
 
