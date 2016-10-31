@@ -31,6 +31,7 @@ public class Teste {
 		p.accept(stVis);
 		//fazendo a checagem de tipos
 		p.accept(new TypeCheckVisitor(stVis.getSymbolTable()));
+		System.out.println("TypeCheking passed");
 		//PrettyPrintVisitor ppv = new PrettyPrintVisitor();
 		//p.accept(ppv);
 		

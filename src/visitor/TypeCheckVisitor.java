@@ -233,7 +233,9 @@ public class TypeCheckVisitor implements TypeVisitor {
 
 	// Exp e1,e2;
 	public Type visit(And n) {
-		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
+		Type t1 = n.e1.accept(this);
+		Type t2 = n.e2.accept(this);
+		if (t1 != null && t2 != null && !symbolTable.compareTypes(t1,t2)) {
 			System.out.println("Expressão AND com tipos incompatíveis");
 			System.exit(0);
 		}
@@ -242,7 +244,9 @@ public class TypeCheckVisitor implements TypeVisitor {
 
 	// Exp e1,e2;
 	public Type visit(LessThan n) {
-		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
+		Type t1 = n.e1.accept(this);
+		Type t2 = n.e2.accept(this);
+		if (t1 != null && t2 != null && !symbolTable.compareTypes(t1,t2)) {
 			System.out.println("Expressão LessThan com tipos incompatíveis");
 			System.exit(0);
 		}
@@ -251,7 +255,9 @@ public class TypeCheckVisitor implements TypeVisitor {
 
 	// Exp e1,e2;
 	public Type visit(Plus n) {
-		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
+		Type t1 = n.e1.accept(this);
+		Type t2 = n.e2.accept(this);
+		if (t1 != null && t2 != null && !symbolTable.compareTypes(t1,t2)) {
 			System.out.println("Expressão PLUS com tipos incompatíveis");
 			System.exit(0);
 		}
@@ -260,7 +266,9 @@ public class TypeCheckVisitor implements TypeVisitor {
 
 	// Exp e1,e2;
 	public Type visit(Minus n) {
-		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
+		Type t1 = n.e1.accept(this);
+		Type t2 = n.e2.accept(this);
+		if (t1 != null && t2 != null && !symbolTable.compareTypes(t1,t2)) {
 			System.out.println("Expressão MINUS com tipos incompatíveis");
 			System.exit(0);
 		}
@@ -269,7 +277,9 @@ public class TypeCheckVisitor implements TypeVisitor {
 
 	// Exp e1,e2;
 	public Type visit(Times n) {
-		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
+		Type t1 = n.e1.accept(this);
+		Type t2 = n.e2.accept(this);
+		if (t1 != null && t2 != null && !symbolTable.compareTypes(t1,t2)) {
 			System.out.println("Expressão TIMES com tipos incompatíveis");
 			System.exit(0);
 		}
@@ -293,14 +303,17 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// Identifier i;
 	// ExpList el;
 	public Type visit(Call n) {
-		Class c = currClass;
-		currClass = symbolTable.getClass(((IdentifierType) n.e.accept(this)).s);
-		Type t = n.i.accept(this);
-		currClass = c;
+		//Class c = currClass;
+		Type t1 = n.e.accept(this);
+		if (t1 != null) {
+			currClass = symbolTable.getClass(((IdentifierType) t1).s);
+		}
+		Type t2 = n.i.accept(this);
+		//currClass = c;
 		for (int i = 0; i < n.el.size(); i++) {
 			n.el.elementAt(i).accept(this);
 		}
-		return t;
+		return t2;
 	}
 
 	// int i;
