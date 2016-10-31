@@ -303,13 +303,11 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// Identifier i;
 	// ExpList el;
 	public Type visit(Call n) {
-		//Class c = currClass;
 		Type t1 = n.e.accept(this);
 		if (t1 != null) {
 			currClass = symbolTable.getClass(((IdentifierType) t1).s);
 		}
 		Type t2 = n.i.accept(this);
-		//currClass = c;
 		for (int i = 0; i < n.el.size(); i++) {
 			n.el.elementAt(i).accept(this);
 		}
@@ -367,7 +365,6 @@ public class TypeCheckVisitor implements TypeVisitor {
 			if (v == null) v = currMethod.getParam(n.s);
 			else t = symbolTable.getVarType(currMethod, currClass, n.s);
 		} else if (!n.s.equals(currClass.getId())) {
-			System.out.println(n.s);
 			t = symbolTable.getMethodType(n.s, currClass.getId());
 		}
 		return t;
