@@ -1,6 +1,9 @@
 package visitor;
 
+import symboltable.Method;
+import symboltable.Class;
 import symboltable.SymbolTable;
+import symboltable.Variable;
 import ast.And;
 import ast.ArrayAssign;
 import ast.ArrayLength;
@@ -40,8 +43,10 @@ import ast.While;
 public class TypeCheckVisitor implements TypeVisitor {
 
 	private SymbolTable symbolTable;
+	private Class currClass;
+	private Method currMethod;
 
-	TypeCheckVisitor(SymbolTable st) {
+	public TypeCheckVisitor(SymbolTable st) {
 		symbolTable = st;
 	}
 
@@ -68,6 +73,8 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// VarDeclList vl;
 	// MethodDeclList ml;
 	public Type visit(ClassDeclSimple n) {
+		currMethod = null;
+		currClass = symbolTable.getClass(n.i.s);
 		n.i.accept(this);
 		for (int i = 0; i < n.vl.size(); i++) {
 			n.vl.elementAt(i).accept(this);
@@ -83,6 +90,8 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// VarDeclList vl;
 	// MethodDeclList ml;
 	public Type visit(ClassDeclExtends n) {
+		currMethod = null;
+		currClass = symbolTable.getClass(n.i.s);
 		n.i.accept(this);
 		n.j.accept(this);
 		for (int i = 0; i < n.vl.size(); i++) {
@@ -97,6 +106,15 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// Type t;
 	// Identifier i;
 	public Type visit(VarDecl n) {
+		if (currClass == null) {
+			System.out.println("Variável fora de uma Classe");
+			System.exit(0);
+		}
+		Type t = symbolTable.getVarType(currMethod, currClass, n.i.s);
+		if (n.t != t) {
+			System.out.println("Tipos de variáveis incompatíveis");
+			System.exit(0);
+		}
 		n.t.accept(this);
 		n.i.accept(this);
 		return null;
@@ -109,6 +127,8 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// StatementList sl;
 	// Exp e;
 	public Type visit(MethodDecl n) {
+		currMethod = symbolTable.getMethod(n.i.s, currClass.getId());
+		//currMethod = currClass.getMethod(n.i.s);
 		n.t.accept(this);
 		n.i.accept(this);
 		for (int i = 0; i < n.fl.size(); i++) {
@@ -159,8 +179,12 @@ public class TypeCheckVisitor implements TypeVisitor {
 
 	// Exp e;
 	// Statement s1,s2;
-	public Type visit(If n) {
-		n.e.accept(this);
+	public Type visit(If n) {		
+		Type t = n.e.accept(this);
+		if (!(t instanceof BooleanType)) {
+			System.out.println("If com expressão não booleana");
+			System.exit(0);
+		}
 		n.s1.accept(this);
 		n.s2.accept(this);
 		return null;
@@ -169,22 +193,33 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// Exp e;
 	// Statement s;
 	public Type visit(While n) {
-		n.e.accept(this);
+		Type t = n.e.accept(this);
+		if (!(t instanceof BooleanType)) {
+			System.out.println("While com expressão não booleana");
+			System.exit(0);
+		}
 		n.s.accept(this);
 		return null;
 	}
 
 	// Exp e;
 	public Type visit(Print n) {
-		n.e.accept(this);
+		if (n.e.accept(this) == null) {
+			System.out.println("Print com expressão nula");
+			System.exit(0);
+		}
 		return null;
 	}
 
 	// Identifier i;
 	// Exp e;
 	public Type visit(Assign n) {
-		n.i.accept(this);
-		n.e.accept(this);
+		Type t1 = n.i.accept(this);
+		Type t2 = n.e.accept(this);
+		if (t1 != t2) {
+			System.out.println("Assign com tipos diferentes");
+			System.exit(0);
+		}
 		return null;
 	}
 
@@ -192,112 +227,137 @@ public class TypeCheckVisitor implements TypeVisitor {
 	// Exp e1,e2;
 	public Type visit(ArrayAssign n) {
 		n.i.accept(this);
-		n.e1.accept(this);
+		if (n.e1.accept(this) instanceof IntegerType) {
+			System.out.println("Índice do array não é um inteiro");
+			System.exit(0);
+		}
 		n.e2.accept(this);
 		return null;
 	}
 
 	// Exp e1,e2;
 	public Type visit(And n) {
-		n.e1.accept(this);
-		n.e2.accept(this);
-		return null;
+		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
+			System.out.println("Expressão AND com tipos incompatíveis");
+			System.exit(0);
+		};
+		return new BooleanType();
 	}
 
 	// Exp e1,e2;
 	public Type visit(LessThan n) {
-		n.e1.accept(this);
-		n.e2.accept(this);
-		return null;
+		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
+			System.out.println("Expressão LessThan com tipos incompatíveis");
+			System.exit(0);
+		};
+		return new BooleanType();
 	}
 
 	// Exp e1,e2;
 	public Type visit(Plus n) {
-		n.e1.accept(this);
-		n.e2.accept(this);
-		return null;
+		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
+			System.out.println("Expressão PLUS com tipos incompatíveis");
+			System.exit(0);
+		};
+		return new IntegerType();
 	}
 
 	// Exp e1,e2;
 	public Type visit(Minus n) {
-		n.e1.accept(this);
-		n.e2.accept(this);
-		return null;
+		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
+			System.out.println("Expressão MINUS com tipos incompatíveis");
+			System.exit(0);
+		};
+		return new IntegerType();
 	}
 
 	// Exp e1,e2;
 	public Type visit(Times n) {
-		n.e1.accept(this);
-		n.e2.accept(this);
-		return null;
+		if (!symbolTable.compareTypes(n.e1.accept(this), n.e2.accept(this))) {
+			System.out.println("Expressão TIMES com tipos incompatíveis");
+			System.exit(0);
+		};
+		return new IntegerType();
 	}
 
 	// Exp e1,e2;
 	public Type visit(ArrayLookup n) {
 		n.e1.accept(this);
 		n.e2.accept(this);
-		return null;
+		return new IntegerType();
 	}
 
 	// Exp e;
 	public Type visit(ArrayLength n) {
 		n.e.accept(this);
-		return null;
+		return new IntegerType();
 	}
 
 	// Exp e;
 	// Identifier i;
 	// ExpList el;
 	public Type visit(Call n) {
-		n.e.accept(this);
-		n.i.accept(this);
+		Class c = currClass;
+		currClass = symbolTable.getClass(((IdentifierType) n.e.accept(this)).s);
+		Type t = n.i.accept(this);
+		currClass = c;
 		for (int i = 0; i < n.el.size(); i++) {
 			n.el.elementAt(i).accept(this);
 		}
-		return null;
+		return t;
 	}
 
 	// int i;
 	public Type visit(IntegerLiteral n) {
-		return null;
+		return new IntegerType();
 	}
 
 	public Type visit(True n) {
-		return null;
+		return new BooleanType();
 	}
 
 	public Type visit(False n) {
-		return null;
+		return new BooleanType();
 	}
 
 	// String s;
 	public Type visit(IdentifierExp n) {
-		return null;
+		return symbolTable.getVarType(currMethod, currClass, n.s);
 	}
 
 	public Type visit(This n) {
-		return null;
+		return new IdentifierType(currClass.getId());
 	}
 
 	// Exp e;
 	public Type visit(NewArray n) {
 		n.e.accept(this);
-		return null;
+		return new IntArrayType();
 	}
 
 	// Identifier i;
 	public Type visit(NewObject n) {
-		return null;
+		return new IdentifierType(n.i.s);
 	}
 
 	// Exp e;
 	public Type visit(Not n) {
-		n.e.accept(this);
-		return null;
+		if (!(n.e.accept(this) instanceof BooleanType)) {
+			System.out.println("Expressão NOT com elemento não booleano");
+			System.exit(0);
+		}
+		return new BooleanType();
 	}
 
 	// String s;
 	public Type visit(Identifier n) {
-		return null;
+		Type t = null;
+		Variable v = currClass.getVar(n.s);
+		if (currMethod != null) {
+			v = currMethod.getVar(n.s);
+			if (v == null) v = currMethod.getParam(n.s);
+			else t = symbolTable.getVarType(currMethod, currClass, n.s);
+		} else t = symbolTable.getMethodType(n.s, currClass.getId());
+		return t;
 	}
 }
